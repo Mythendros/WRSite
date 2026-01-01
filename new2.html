@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sozialversicherungs-Tempel 2025</title>
+
+<style>
+/* --- GRUNDLAYOUT --- */
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+  background-color: #a5d6a7;
+}
+
+svg {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+
+/* --- INTERAKTIVITÄT --- */
+.interactive {
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  transform-box: fill-box;
+  transform-origin: center bottom; 
+  /* Wichtig für SVG Images: Origin muss manuell stimmen oder via JS handled werden, 
+     aber CSS hover transform funktioniert gut für Gruppen */
+}
+
+/* Hover-Effekt: Leichtes Anheben und Aufhellen */
+.interactive:hover {
+  transform: translateY(-10px); 
+  filter: brightness(1.1) drop-shadow(0 10px 5px rgba(0,0,0,0.3));
+}
+
+.column-text {
+  pointer-events: none;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 13px;
+  fill: #000;
+  text-anchor: middle;
+}
+
+/* --- POPUPS --- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+  backdrop-filter: blur(3px);
+}
+
+.overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Kleines Popup */
+.popup-small {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: 320px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Großes Dashboard Popup */
+.popup-large {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  width: 95vw;
+  max-width: 1200px;
+  height: 85vh;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.close-btn {
+  cursor: pointer;
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  font-weight: bold;
+}
+.close-btn:hover { background: #e0e0e0; }
+
+/* Grid Layout */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.8fr; /* Diagramm etwas breiter */
+  gap: 20px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.calc-col {
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- DIAGRAMM STYLES --- */
+.chart-area {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 30px;
+  gap: 40px; /* Abstand zwischen AN und AG Balken */
+}
+
+.bar-column {
+  width: 100px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.bar-label {
+  position: absolute;
+  bottom: -25px;
+  font-weight: bold;
+  text-align: center;
+  width: 150%;
+  font-size: 14px;
+}
+
+/* Der Basis-Balken (Grau = Brutto) */
+.bar-gross {
+  width: 100%;
+  background: #e0e0e0;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: height 0.5s ease;
+  /* Flex direction column damit Items oben anfangen */
+  display: flex;
+  flex-direction: column; 
+}
+
+/* Stapelcontainer für AG (wächst von unten) */
+.bar-stack-up {
+  width: 100%;
+  display: flex;
+  flex-direction: column-reverse; /* Damit Stapel unten beginnt */
+  transition: height 0.5s ease;
+}
+
+.seg {
+  width: 100%;
+  transition: height 0.5s ease;
+  position: relative;
+  cursor: help;
+}
+/* Tooltip on Hover */
+.seg:hover::after {
+  content: attr(data-val);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Farben */
+.c-kv { background: #e53935; } /* Rot */
+.c-rv { background: #43a047; } /* Grün */
+.c-av { background: #1e88e5; } /* Blau */
+.c-uv { background: #8e24aa; } /* Lila */
+.c-pv { background: #fdd835; } /* Gelb */
+
+/* --- TABELLE --- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th, .data-table td {
+  border-bottom: 1px solid #eee;
+  padding: 6px 4px;
+  text-align: right;
+}
+.data-table th:first-child, .data-table td:first-child {
+  text-align: left;
+}
+.pct-label {
+  font-size: 0.85em;
+  color: #666;
+  margin-left: 4px;
+}
+
+/* --- INPUTS --- */
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+.input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+.minijob-badge {
+  display: none;
+  background: #c8e6c9;
+  color: #2e7d32;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+}
+.minijob-badge.active { display: block; }
+
+</style>
+</head>
+
+<body>
+
+<svg viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
+  <rect width="1000" height="600" fill="#cfe9ff"/>
+  <g id="clouds"></g>
+  
+  <rect y="460" width="1000" height="140" fill="#a5d6a7"/>
+
+  <g id="temple" transform="translate(500 460)">
+    <rect x="-250" y="0" width="500" height="28" rx="14" fill="#cfcfcf"/>
+    <rect x="-220" y="-28" width="440" height="28" rx="14" fill="#e0e0e0"/>
+
+    <g transform="translate(-176,-208)">
+      <g><rect class="interactive" x="-24" y="0" width="48" height="180" rx="16" fill="#f3f3f3"
+          data-type="text" data-title="Krankenversicherung" data-text="yapyapyapkrank"/>
+        <text class="column-text" x="0" y="90">Krankenversicherung</text></g>
+      <g transform="translate(64,0)"><rect class="interactive" width="48" height="180" rx="16" fill="#f3f3f3"
+          data-type="text" data-title="Unfallversicherung" data-text="yapyapunfall"/>
+        <text class="column-text" x="24" y="90">Unfallversicherung</text></g>
+      <g transform="translate(152,0)"><rect class="interactive" width="48" height="180" rx="16" fill="#f3f3f3"
+          data-type="text" data-title="Rentenversicherung" data-text="renteyap"/>
+        <text class="column-text" x="24" y="90">Rentenversicherung</text></g>
+      <g transform="translate(240,0)"><rect class="interactive" width="48" height="180" rx="16" fill="#f3f3f3"
+          data-type="text" data-title="Arbeitslosenversicherung" data-text="arbeitsloseryap"/>
+        <text class="column-text" x="24" y="90">Arbeitslosenversicherung</text></g>
+      <g transform="translate(328,0)"><rect class="interactive" width="48" height="180" rx="16" fill="#f3f3f3"
+          data-type="text" data-title="Pflegeversicherung" data-text="yapyappflege"/>
+        <text class="column-text" x="24" y="90">Pflegeversicherung</text></g>
+    </g>
+
+    <polygon class="interactive" points="-240,-208 240,-208 170,-278 -170,-278" fill="#cfd8dc"
+      data-type="text" data-title="Sozialversicherungssystem" data-text="yapyap Prinzipien"/>
+    <text x="0" y="-238" text-anchor="middle" fill="#000" font-weight="bold">Sozialversicherungssystem</text>
+  </g>
+
+  <g class="interactive" data-type="text" data-title="Beurteilung der Finanzierung der Sozialversicherung im Hinblick auf Effizienz und soziale Gerechtigkeit" data-text="yapyapyapyap">
+    <image href="justitia.png" x="50" y="240" height="250" width="125" preserveAspectRatio="xMidYMid meet" />
+  </g>
+
+  <g class="interactive" data-type="calc">
+    <image href="beitraege.png" x="825" y="240" height="250" width="125" preserveAspectRatio="xMidYMid meet" />
+  </g>
+
+</svg>
+
+<div class="overlay" id="textOverlay">
+  <div class="popup-small">
+    <h2 id="popupTitle" style="margin-top:0;"></h2>
+    <p id="popupText"></p>
+    <div class="close-btn" onclick="closeOverlays()" style="text-align:center;">Schließen</div>
+  </div>
+</div>
+
+<div class="overlay" id="calcOverlay">
+  <div class="popup-large">
+    <div class="popup-header">
+      <h2 style="margin:0;">Beiträge der Sozialversicherung (Stand 2026) </h2>
+      <div class="close-btn" onclick="closeOverlays()">Schließen</div>
+    </div>
+
+    <div class="calc-grid">
+      
+      <div class="calc-col" style="border-right:1px solid #eee;">
+        <h3 style="text-align:center; margin-bottom:5px;">Veranschaulichung der Beiträge</h3>
+        <p style="text-align:center; font-size:12px; color:#666;">Links die Abgaben vom Brutogehalt des Arbeitnehmer (AN), Rechts die zusätzlichen Beiträge des Arbeitgebers (AG)</p>
+        
+        <div class="chart-area">
+          
+          <div class="bar-column">
+            <div class="bar-gross" id="bar-gross-visual" style="height: 300px;">
+              <div class="seg c-kv" id="bar-kv-an"></div>
+              <div class="seg c-rv" id="bar-rv-an"></div>
+              <div class="seg c-av" id="bar-av-an"></div>
+              <div class="seg c-pv" id="bar-pv-an"></div>
+              </div>
+            <div class="bar-label">Arbeitnehmer<br><span style="font-weight:normal; font-size:11px;">(Bruttolohn)</span></div>
+          </div>
+
+          <div class="bar-column">
+            <div class="bar-stack-up" id="stack-ag">
+              <div class="seg c-kv" id="bar-kv-ag"></div>
+              <div class="seg c-rv" id="bar-rv-ag"></div>
+              <div class="seg c-av" id="bar-av-ag"></div>
+              <div class="seg c-pv" id="bar-pv-ag"></div>
+              <div class="seg c-uv" id="bar-uv-ag"></div>
+            </div>
+            <div class="bar-label">Arbeitgeber<br><span style="font-weight:normal; font-size:11px;">(Zusatzkosten)</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="calc-col" style="border-right:1px solid #eee;">
+        <h3>Beitragskosten für Arbeitnehmer (AN) und Arbeitgeber (AG)</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Versicherung</th>
+              <th>AN (% von Nettolohn)</th>
+              <th>AG (% von Nettolohn)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span style="color:#e53935">■</span> Kranken</td>
+              <td id="td-kv-an">-</td>
+              <td id="td-kv-ag">-</td>
+            </tr>
+            <tr>
+              <td><span style="color:#43a047">■</span> Rente</td>
+              <td id="td-rv-an">-</td>
+              <td id="td-rv-ag">-</td>
+            </tr>
+            <tr>
+              <td><span style="color:#1e88e5">■</span> Arbeitslos</td>
+              <td id="td-av-an">-</td>
+              <td id="td-av-ag">-</td>
+            </tr>
+            <tr>
+              <td><span style="color:#fdd835">■</span> Pflege</td>
+              <td id="td-pv-an">-</td>
+              <td id="td-pv-ag">-</td>
+            </tr>
+            <tr>
+              <td><span style="color:#8e24aa">■</span> Unfall</td>
+              <td>0,00 € <span class="pct-label">(0%)</span></td>
+              <td id="td-uv-ag">-</td>
+            </tr>
+            <tr style="font-weight:bold; background:#f9f9f9; border-top:2px solid #ddd;">
+              <td>Summe SV</td>
+              <td id="td-sum-an" style="color:#d32f2f;"></td>
+              <td id="td-sum-ag" style="color:#388e3c;"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top:auto; background:#e8f5e9; padding:15px; border-radius:8px;">
+          <div style="font-size:12px; color:#555;">SV-Netto (Brutto - SV-Anteil):</div>
+          <div id="val-netto" style="font-size:24px; font-weight:bold; color:#2e7d32;"></div>
+          <div style="font-size:10px; color:#777;">*Ohne Lohnsteuer betrachtet</div>
+        </div>
+      </div>
+
+      <div class="calc-col">
+        <h3>Deine Daten</h3>
+        
+        <div class="input-group">
+          <label>Bruttolohn (Monat)</label>
+          <input type="number" id="inpSalary" value="3500" step="10">
+          <div style="font-size:11px; color:#666; margin-top:3px;">
+            Löst ggf. die Minijob-Regelung oder Beitragsbemessungsgrenzen aus.
+        </div>
+        </div>
+        
+
+        <div id="minijobAlert" class="minijob-badge">
+          ℹ️ Minijob-Regelung aktiv (bis 603€ Monatslohn)<br>
+          <span style="font-weight:normal; font-size:11px;">AG zahlt Pauschalen, AN befreit (Standard)</span>
+        </div>
+        
+        <div id="bbgk" class="minijob-badge">
+          ℹ️ Beitragsbemessungsgrenze Kranken- und Pflegeversicherung aktiv (Beitrag steigt ab 5.812,50€ Monatslohn nichtmehr)<br>
+          <span style="font-weight:normal; font-size:11px;">AN und AG zahlen die selben Beiträge wie bei 5.812,50€ Monatslohn</span>
+        </div>
+        
+        <div id="bbgr" class="minijob-badge">
+          ℹ️ Beitragsbemessungsgrenze Renten- und Arbeitslosenversicherung aktiv (Beitrag (und Anspruch) steigt ab 8.450,00€ Monatslohn nichtmehr)<br>
+          <span style="font-weight:normal; font-size:11px;">AN und AG zahlen die selben Beiträge wie bei 8.450,00€ Monatslohn</span>
+        </div>
+
+        <div class="input-group">
+          <label>Bundesland Sachsen?</label>
+          <select id="inpSachsen">
+            <option value="no">Nein (Restliche BL)</option>
+            <option value="yes">Ja</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>Anzahl der Kinder unter 25 Jahren</label>
+          <select id="inpKids">
+            <option value="0">0 (und selbst älter als 23 Jahre)</option>
+            <option selected value="1">1 (oder selbst noch jünger als 23 Jahre)</option>
+            <option value="2">2 </option>
+            <option value="3">3 </option>
+            <option value="4">4 </option>
+            <option value="5">5 oder mehr</option>
+          </select>
+          <div style="font-size:11px; color:#666; margin-top:3px;">
+            Wirkt sich auf Pflegeversicherung aus (Entlastung ab 2. Kind von 0.25% pro Kind) , Aufschlag bei Kinderlosigkeit ab 23 Jahren von 0.6%).
+          </div>
+        </div>
+        
+
+        <div style="margin-top:20px; font-size:11px; color:#888; border-top:1px solid #eee; padding-top:10px;">
+          <strong>Getroffene Annahmen:</strong><br>
+          Es wird von einer gesetzlichen Krankenversicherung mit Anspruch auf Krankengeld ausgegegangen.<br>
+          Wir gehen von einem durchschnittlichem Zusatzbeitragssatz in der gesetzlichen Krankenversicherung aus (2,9%), da dieser induviduell ist. So gibt sich z.B. im Normalfall (keine Minijob-Regelung, Anrecht auf Krankengeld.) ein insgesammter Krankenkassenbeitrag von 14,6% + 2,9% = 17,5%<br>
+          Wir gehen von einem durchschnittlichem Unfallversicherungsbetrag aus (1,6%), da dieser induviduell ist.
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* --- SETUP --- */
+const textOverlay = document.getElementById("textOverlay");
+const calcOverlay = document.getElementById("calcOverlay");
+const popupTitle = document.getElementById("popupTitle");
+const popupText = document.getElementById("popupText");
+
+// Event Listener für Klick
+document.querySelectorAll(".interactive").forEach(el => {
+  el.addEventListener("click", () => {
+    const type = el.dataset.type;
+    if (type === "text") {
+      popupTitle.textContent = el.dataset.title;
+      popupText.textContent = el.dataset.text;
+      textOverlay.classList.add("active");
+    } else if (type === "calc") {
+      calcOverlay.classList.add("active");
+      calculateSV();
+    }
+  });
+});
+
+function closeOverlays() {
+  textOverlay.classList.remove("active");
+  calcOverlay.classList.remove("active");
+}
+
+/* --- RECHNER 2025 --- */
+const inpSalary = document.getElementById("inpSalary");
+const inpSachsen = document.getElementById("inpSachsen");
+const inpKids = document.getElementById("inpKids");
+const minijobAlert = document.getElementById("minijobAlert");
+
+[inpSalary, inpSachsen, inpKids].forEach(el => el.addEventListener("input", calculateSV));
+
+function calculateSV() {
+  let gross = parseFloat(inpSalary.value) || 0;
+  if(gross < 0) gross = 0;
+  
+  const isSachsen = inpSachsen.value === "yes";
+  const kids = parseInt(inpKids.value);
+
+  // --- 2025 KONSTANTEN ---
+  const LIMIT_MINIJOB = 603.00; // Prognose Mindestlohn Anstieg
+  const BBG_KV = 5812.50; 
+  const BBG_RV = 8450.00;
+
+  // Sätze
+  const rateKV_Base = 0.146; 
+  const rateKV_Add = 0.029; // 2025 Erhöhung erwartet
+  const rateKV_Total = rateKV_Base + rateKV_Add;
+  
+  const rateRV = 0.186;
+  const rateAV = 0.026;
+  const rateUV = 0.016; // BG Annahme
+
+  // Pflege (Reformwerte Ende 2024/25)
+  // Basis: 3,4% (bei 1 Kind oder lebenslang Kinderlos <23)
+  // Kinderloszuschlag: +0,6% (Gesamt 4,0%)
+  // Entlastung ab 2. Kind: 0,25% pro Kind (max bis 5. Kind)
+  
+  let ratePV_Total = 0.034; 
+  let surchargeNoKids = 0;
+  let reliefKids = 0;
+
+  // Vereinfachung: Wir nehmen an User > 23 Jahre
+  if (kids === 0) {
+    surchargeNoKids = 0.006; // Kinderlosenzuschlag
+  } else if (kids >= 2) {
+    reliefKids = (Math.min(kids, 5) - 1) * 0.0025;
+  }
+  
+  ratePV_Total += surchargeNoKids; 
+  // Relief wird nur vom AN abgezogen, ändert den Gesamtsatz technisch nicht, 
+  // aber die Verteilung. Wir rechnen es in die AN-Last.
+
+  // --- BERECHNUNG ---
+  let res = { kv_an:0, kv_ag:0, rv_an:0, rv_ag:0, av_an:0, av_ag:0, pv_an:0, pv_ag:0, uv_ag:0 };
+  let pct = { kv_an:0, kv_ag:0, rv_an:0, rv_ag:0, av_an:0, av_ag:0, pv_an:0, pv_ag:0, uv_ag:0 };
+
+  const isMinijob = gross <= LIMIT_MINIJOB && gross > 0;
+  
+  if (gross < BBG_KV) {
+    bbgk.classList.remove("active")
+    }
+  else {
+    bbgk.classList.add("active")
+    }
+  if (gross < BBG_RV) {
+    bbgr.classList.remove("active")
+    }
+  else {
+    bbgr.classList.add("active")
+    }
+  if(isMinijob) {
+    minijobAlert.classList.add("active");
+    // Minijob Pauschalen AG 2025
+    res.kv_ag = gross * 0.13;
+    res.rv_ag = gross * 0.15; 
+    res.uv_ag = gross * 0.016; // BG
+    // AN zahlt 0 (Befreiung angenommen)
+    
+    // Für Prozentanzeige
+    pct.kv_ag = 13.0; pct.rv_ag = 15.0; pct.uv_ag = 1.6;
+    
+  } else {
+    minijobAlert.classList.remove("active");
+    
+    // Basiswerte
+    const bKV = Math.min(gross, BBG_KV);
+    const bRV = Math.min(gross, BBG_RV);
+
+    // KV
+    res.kv_an = bKV * (rateKV_Total / 2);
+    res.kv_ag = bKV * (rateKV_Total / 2);
+    pct.kv_an = (rateKV_Total / 2) * 100;
+    pct.kv_ag = pct.kv_an;
+
+    // RV
+    res.rv_an = bRV * (rateRV / 2);
+    res.rv_ag = bRV * (rateRV / 2);
+    pct.rv_an = (rateRV / 2) * 100;
+    pct.rv_ag = pct.rv_an;
+
+    // AV
+    res.av_an = bRV * (rateAV / 2);
+    res.av_ag = bRV * (rateAV / 2);
+    pct.av_an = (rateAV / 2) * 100;
+    pct.av_ag = pct.av_an;
+
+    // UV
+    res.uv_ag = gross * rateUV;
+    pct.uv_ag = rateUV * 100;
+
+    // PV (Komplex)
+    // AG Anteil
+    let ratePV_AG = 0;
+    if (isSachsen) {
+      ratePV_AG = 0.012; // Fix Sachsen
+    } else {
+      ratePV_AG = 0.017; // ~Hälfte Basis
+    }
+    
+    // AN Anteil = Gesamt - AG - Relief
+    let ratePV_AN = ratePV_Total - ratePV_AG - reliefKids;
+    if(ratePV_AN < 0) ratePV_AN = 0;
+
+    res.pv_ag = bKV * ratePV_AG;
+    res.pv_an = bKV * ratePV_AN;
+    
+    pct.pv_ag = ratePV_AG * 100;
+    pct.pv_an = ratePV_AN * 100;
+  }
+
+  updateUI(res, pct, gross);
+}
+
+function updateUI(res, pct, gross) {
+  const f = (val) => val.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
+  const p = (val) => "(" + val.toFixed(2) + "%)";
+
+  // Tabelle füllen
+  const setRow = (type, valAN, pctAN, valAG, pctAG) => {
+    document.getElementById(`td-${type}-an`).innerHTML = `${f(valAN)} <span class="pct-label">${p(pctAN)}</span>`;
+    document.getElementById(`td-${type}-ag`).innerHTML = `${f(valAG)} <span class="pct-label">${p(pctAG)}</span>`;
+  };
+
+  setRow("kv", res.kv_an, pct.kv_an, res.kv_ag, pct.kv_ag);
+  setRow("rv", res.rv_an, pct.rv_an, res.rv_ag, pct.rv_ag);
+  setRow("av", res.av_an, pct.av_an, res.av_ag, pct.av_ag);
+  setRow("pv", res.pv_an, pct.pv_an, res.pv_ag, pct.pv_ag);
+  
+  // UV
+  document.getElementById("td-uv-ag").innerHTML = `${f(res.uv_ag)} <span class="pct-label">${p(pct.uv_ag)}</span>`;
+
+  // Summen
+  const sumAN = res.kv_an + res.rv_an + res.av_an + res.pv_an;
+  const sumAG = res.kv_ag + res.rv_ag + res.av_ag + res.pv_ag + res.uv_ag;
+  
+  document.getElementById("td-sum-an").textContent = f(sumAN);
+  document.getElementById("td-sum-ag").textContent = f(sumAG);
+  document.getElementById("val-netto").textContent = f(gross - sumAN);
+
+  // Diagramm
+  // Basis ist immer visuelle 300px = Gross (sofern Gross > 0)
+  // Wenn Gross 0, keine Balken.
+  const visualBase = 300;
+  
+  // AN Seite: Die Segmente nehmen Platz im Balken ein (Height = Anteil am Brutto)
+  const getH = (val) => (gross > 0) ? (val / gross) * visualBase : 0;
+  
+  // Setze AN Segmente (Top Down)
+  document.getElementById("bar-kv-an").style.height = getH(res.kv_an) + "px";
+  document.getElementById("bar-kv-an").dataset.val = "KV: " + f(res.kv_an);
+  
+  document.getElementById("bar-rv-an").style.height = getH(res.rv_an) + "px";
+  document.getElementById("bar-rv-an").dataset.val = "RV: " + f(res.rv_an);
+  
+  document.getElementById("bar-av-an").style.height = getH(res.av_an) + "px";
+  document.getElementById("bar-av-an").dataset.val = "AV: " + f(res.av_an);
+  
+  document.getElementById("bar-pv-an").style.height = getH(res.pv_an) + "px";
+  document.getElementById("bar-pv-an").dataset.val = "PV: " + f(res.pv_an);
+
+  // AG Seite: Stapel wächst nach oben
+  document.getElementById("bar-kv-ag").style.height = getH(res.kv_ag) + "px";
+  document.getElementById("bar-kv-ag").dataset.val = "KV: " + f(res.kv_ag);
+
+  document.getElementById("bar-rv-ag").style.height = getH(res.rv_ag) + "px";
+  document.getElementById("bar-rv-ag").dataset.val = "RV: " + f(res.rv_ag);
+  
+  document.getElementById("bar-av-ag").style.height = getH(res.av_ag) + "px";
+  document.getElementById("bar-av-ag").dataset.val = "AV: " + f(res.av_ag);
+
+  document.getElementById("bar-pv-ag").style.height = getH(res.pv_ag) + "px";
+  document.getElementById("bar-pv-ag").dataset.val = "PV: " + f(res.pv_ag);
+
+  document.getElementById("bar-uv-ag").style.height = getH(res.uv_ag) + "px";
+  document.getElementById("bar-uv-ag").dataset.val = "UV: " + f(res.uv_ag);
+}
+
+/* --- WOLKEN --- */
+const clouds = document.getElementById("clouds");
+for(let i=0; i<6; i++){
+  const x = Math.random()*900; const y = Math.random()*200;
+  const s = 0.6+Math.random()*0.7;
+  const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+  g.setAttribute("transform",`translate(${x} ${y}) scale(${s})`);
+  g.innerHTML=`<ellipse cx="30" cy="20" rx="30" ry="20" fill="white" opacity="0.8"/><ellipse cx="60" cy="20" rx="30" ry="20" fill="white" opacity="0.8"/>`;
+  clouds.appendChild(g);
+}
+</script>
+</body>
+</html>
