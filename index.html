@@ -28,8 +28,7 @@ svg {
   transition: transform 0.2s ease, filter 0.2s ease;
   transform-box: fill-box;
   transform-origin: center bottom; 
-  /* Wichtig für SVG Images: Origin muss manuell stimmen oder via JS handled werden, 
-     aber CSS hover transform funktioniert gut für Gruppen */
+ 
 }
 
 
@@ -46,8 +45,7 @@ svg {
   fill: #000;
   text-anchor: middle;
 }
-
-/* --- POPUPS --- */
+/* popupgedöns */
 .overlay {
   position: fixed;
   inset: 0;
@@ -67,7 +65,7 @@ svg {
   pointer-events: all;
 }
 
-/* Kleines Popup */
+
 .popup-small {
   background: white;
   border-radius: 16px;
@@ -76,7 +74,7 @@ svg {
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
 }
 
-/* Großes Dashboard Popup */
+
 .popup-large {
   background: white;
   border-radius: 16px;
@@ -107,10 +105,10 @@ svg {
 }
 .close-btn:hover { background: #e0e0e0; }
 
-/* Grid Layout */
+
 .calc-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 0.8fr; /* Diagramm etwas breiter */
+  grid-template-columns: 1.2fr 1fr 0.8fr; 
   gap: 20px;
   height: 100%;
   overflow: hidden;
@@ -123,14 +121,14 @@ svg {
   flex-direction: column;
 }
 
-/* --- DIAGRAMM STYLES --- */
+
 .chart-area {
   flex-grow: 1;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   padding-bottom: 30px;
-  gap: 40px; /* Abstand zwischen AN und AG Balken */
+  gap: 40px; 
 }
 
 .bar-column {
@@ -151,7 +149,7 @@ svg {
   font-size: 14px;
 }
 
-/* Der Basis-Balken (Grau = Brutto) */
+
 .bar-gross {
   width: 100%;
   background: #e0e0e0;
@@ -159,16 +157,16 @@ svg {
   position: relative;
   overflow: hidden;
   transition: height 0.5s ease;
-  /* Flex direction column damit Items oben anfangen */
+  
   display: flex;
   flex-direction: column; 
 }
 
-/* Stapelcontainer für AG (wächst von unten) */
+
 .bar-stack-up {
   width: 100%;
   display: flex;
-  flex-direction: column-reverse; /* Damit Stapel unten beginnt */
+  flex-direction: column-reverse; 
   transition: height 0.5s ease;
 }
 
@@ -178,7 +176,7 @@ svg {
   position: relative;
   cursor: help;
 }
-/* Tooltip on Hover */
+
 .seg:hover::after {
   content: attr(data-val);
   position: absolute;
@@ -195,14 +193,14 @@ svg {
   z-index: 10;
 }
 
-/* Farben */
-.c-kv { background: #e53935; } /* Rot */
-.c-rv { background: #43a047; } /* Grün */
-.c-av { background: #1e88e5; } /* Blau */
-.c-uv { background: #8e24aa; } /* Lila */
-.c-pv { background: #fdd835; } /* Gelb */
+/* farben */
+.c-kv { background: #e53935; } 
+.c-rv { background: #43a047; } 
+.c-av { background: #1e88e5; } 
+.c-uv { background: #8e24aa; } 
+.c-pv { background: #fdd835; } 
 
-/* --- TABELLE --- */
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -222,7 +220,7 @@ svg {
   margin-left: 4px;
 }
 
-/* --- INPUTS --- */
+
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
 .input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
@@ -448,7 +446,7 @@ svg {
 </div>
 
 <script>
-/* --- SETUP --- */
+
 const textOverlay = document.getElementById("textOverlay");
 const calcOverlay = document.getElementById("calcOverlay");
 const popupTitle = document.getElementById("popupTitle");
@@ -474,7 +472,7 @@ function closeOverlays() {
   calcOverlay.classList.remove("active");
 }
 
-/* --- RECHNER 2025 --- */
+//
 const inpSalary = document.getElementById("inpSalary");
 const inpSachsen = document.getElementById("inpSachsen");
 const inpKids = document.getElementById("inpKids");
@@ -489,19 +487,19 @@ function calculateSV() {
   const isSachsen = inpSachsen.value === "yes";
   const kids = parseInt(inpKids.value);
 
-  // --- 2025 KONSTANTEN ---
-  const LIMIT_MINIJOB = 603.00; // Prognose Mindestlohn Anstieg
+  
+  const LIMIT_MINIJOB = 603.00; 
   const BBG_KV = 5812.50; 
   const BBG_RV = 8450.00;
 
-  // Sätze
+ 
   const rateKV_Base = 0.146; 
-  const rateKV_Add = 0.029; // 2025 Erhöhung erwartet
+  const rateKV_Add = 0.029; 
   const rateKV_Total = rateKV_Base + rateKV_Add;
   
   const rateRV = 0.186;
   const rateAV = 0.026;
-  const rateUV = 0.016; // BG Annahme
+  const rateUV = 0.016; 
 
   // Pflege (Reformwerte Ende 2024/25)
   // Basis: 3,4% (bei 1 Kind oder lebenslang Kinderlos <23)
@@ -512,9 +510,9 @@ function calculateSV() {
   let surchargeNoKids = 0;
   let reliefKids = 0;
 
-  // Vereinfachung: Wir nehmen an User > 23 Jahre
+  // Vereinfachung: Wir nehmen an User > 23 Jahre nvm
   if (kids === 0) {
-    surchargeNoKids = 0.006; // Kinderlosenzuschlag
+    surchargeNoKids = 0.006; 
   } else if (kids >= 2) {
     reliefKids = (Math.min(kids, 5) - 1) * 0.0025;
   }
@@ -608,7 +606,7 @@ function updateUI(res, pct, gross) {
   const f = (val) => val.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
   const p = (val) => "(" + val.toFixed(2) + "%)";
 
-  // Tabelle füllen
+  // Tasdwa
   const setRow = (type, valAN, pctAN, valAG, pctAG) => {
     document.getElementById(`td-${type}-an`).innerHTML = `${f(valAN)} <span class="pct-label">${p(pctAN)}</span>`;
     document.getElementById(`td-${type}-ag`).innerHTML = `${f(valAG)} <span class="pct-label">${p(pctAG)}</span>`;
@@ -622,7 +620,7 @@ function updateUI(res, pct, gross) {
   // UV
   document.getElementById("td-uv-ag").innerHTML = `${f(res.uv_ag)} <span class="pct-label">${p(pct.uv_ag)}</span>`;
 
-  // Summen
+
   const sumAN = res.kv_an + res.rv_an + res.av_an + res.pv_an;
   const sumAG = res.kv_ag + res.rv_ag + res.av_ag + res.pv_ag + res.uv_ag;
   
@@ -630,15 +628,12 @@ function updateUI(res, pct, gross) {
   document.getElementById("td-sum-ag").textContent = f(sumAG);
   document.getElementById("val-netto").textContent = f(gross - sumAN);
 
-  // Diagramm
-  // Basis ist immer visuelle 300px = Gross (sofern Gross > 0)
-  // Wenn Gross 0, keine Balken.
+  
   const visualBase = 300;
   
-  // AN Seite: Die Segmente nehmen Platz im Balken ein (Height = Anteil am Brutto)
+
   const getH = (val) => (gross > 0) ? (val / gross) * visualBase : 0;
-  
-  // Setze AN Segmente (Top Down)
+
   document.getElementById("bar-kv-an").style.height = getH(res.kv_an) + "px";
   document.getElementById("bar-kv-an").dataset.val = "KV: " + f(res.kv_an);
   
@@ -651,7 +646,7 @@ function updateUI(res, pct, gross) {
   document.getElementById("bar-pv-an").style.height = getH(res.pv_an) + "px";
   document.getElementById("bar-pv-an").dataset.val = "PV: " + f(res.pv_an);
 
-  // AG Seite: Stapel wächst nach oben
+
   document.getElementById("bar-kv-ag").style.height = getH(res.kv_ag) + "px";
   document.getElementById("bar-kv-ag").dataset.val = "KV: " + f(res.kv_ag);
 
@@ -668,7 +663,7 @@ function updateUI(res, pct, gross) {
   document.getElementById("bar-uv-ag").dataset.val = "UV: " + f(res.uv_ag);
 }
 
-/* --- WOLKEN --- */
+
 const clouds = document.getElementById("clouds");
 for(let i=0; i<6; i++){
   const x = Math.random()*900; const y = Math.random()*200;
