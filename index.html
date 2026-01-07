@@ -69,9 +69,25 @@ svg {
 .popup-small {
   background: white;
   border-radius: 16px;
-  padding: 24px;
-  width: 320px;
+  padding: 30px;
+  
+  /* NEU: Größere und responsive Breite */
+  width: 90vw;           /* Nimmt 90% der Bildschirmbreite ein */
+  max-width: 800px;      /* Aber nicht breiter als 800px (gute Lesbarkeit) */
+  
+  /* NEU: Umgang mit viel Text */
+  max-height: 80vh;      /* Maximal 80% der Bildschirmhöhe */
+  display: flex;         
+  flex-direction: column; 
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* NEU: Damit der Text scrollbar ist und Absätze erkennt */
+#popupText {
+  overflow-y: auto;      /* Scrollbalken, wenn Text zu lang */
+  line-height: 1.6;      /* Besserer Zeilenabstand */
+  white-space: pre-wrap; /* WICHTIG: Erkennt Zeilenumbrüche im data-text Attribut */
+  margin-bottom: 20px;
 }
 
 
