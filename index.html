@@ -127,6 +127,7 @@ svg {
   display: flex;
   justify-content: center;
   align-items: flex-end;
+  padding-top: 30px;
   padding-bottom: 30px;
   gap: 40px; 
 }
@@ -142,7 +143,7 @@ svg {
 
 .bar-label {
   position: absolute;
-  bottom: -25px;
+  bottom: -20px;
   font-weight: bold;
   text-align: center;
   width: 150%;
@@ -155,6 +156,7 @@ svg {
   background: #e0e0e0;
   border-radius: 6px;
   position: relative;
+  top: -30px;
   overflow: hidden;
   transition: height 0.5s ease;
   
@@ -163,11 +165,16 @@ svg {
 }
 
 
+
 .bar-stack-up {
   width: 100%;
+  border-radius: 6px;
+  position: relative;
+  top: -30px;
+  transition: height 0.5s ease;
+
   display: flex;
   flex-direction: column-reverse; 
-  transition: height 0.5s ease;
 }
 
 .seg {
@@ -318,7 +325,7 @@ svg {
           </div>
 
           <div class="bar-column">
-            <div class="bar-stack-up" id="stack-ag">
+            <div id="stack-ag" class="bar-gross">
               <div class="seg c-kv" id="bar-kv-ag"></div>
               <div class="seg c-rv" id="bar-rv-ag"></div>
               <div class="seg c-av" id="bar-av-ag"></div>
