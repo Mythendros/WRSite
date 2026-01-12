@@ -521,6 +521,20 @@ const popupTitle = document.getElementById("popupTitle");
 const popupText = document.getElementById("popupText");
 
 // Event Listener für Klick
+const salaryInput = document.getElementById("inpSalary");
+
+salaryInput.addEventListener("input", function() {
+    const val = parseFloat(this.value);
+    
+    if (val >= 5000) {
+        this.step = "100";
+    } else if (val >= 1000) {
+        this.step = "50";
+    } else {
+        this.step = "10";
+    }
+});
+  
 document.querySelectorAll(".interactive").forEach(el => {
   el.addEventListener("click", () => {
     const type = el.dataset.type;
