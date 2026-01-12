@@ -491,6 +491,14 @@ Der Sinn hinter dem Zwang, sich in die Versicherungen einzubinden, verständlich
             Wirkt sich auf Pflegeversicherung aus (Entlastung ab 2. Kind von 0.25% pro Kind) , Aufschlag bei Kinderlosigkeit ab 23 Jahren von 0.6%).
           </div>
         </div>
+
+        <div class="input-group">
+          <label>Zusatzbeitragssatz in der gesetzlichen Krankenversicherung (in %)</label>
+          <input type="number" id="inpZus" value="2.9" step="0.1">
+          <div style="font-size:11px; color:#666; margin-top:3px;">
+            Dieser ist für jede gesetzliche Krankenkasse induviduell, der bundesweite Durchschnitt liegt bei 2,9%
+        </div>
+        </div>
         
 
         <div style="margin-top:20px; font-size:11px; color:#888; border-top:1px solid #eee; padding-top:10px;">
@@ -534,6 +542,7 @@ function closeOverlays() {
 
 //
 const inpSalary = document.getElementById("inpSalary");
+const inpZus = document.getElementById("inpZus");
 const inpSachsen = document.getElementById("inpSachsen");
 const inpKids = document.getElementById("inpKids");
 const minijobAlert = document.getElementById("minijobAlert");
@@ -554,7 +563,7 @@ function calculateSV() {
 
  
   const rateKV_Base = 0.146; 
-  const rateKV_Add = 0.029; 
+  const rateKV_Add = inpZus/100; 
   const rateKV_Total = rateKV_Base + rateKV_Add;
   
   const rateRV = 0.186;
