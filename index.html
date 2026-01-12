@@ -246,7 +246,7 @@ svg {
 
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-.input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+.input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
 .minijob-badge {
   display: none;
   background: #c8e6c9;
@@ -256,7 +256,6 @@ svg {
   font-weight: bold;
   text-align: center;
   margin-bottom: 15px;
-  box-sizing: border-box; 
 }
 .minijob-badge.active { display: block; }
 
@@ -564,7 +563,7 @@ function calculateSV() {
 
  
   const rateKV_Base = 0.146; 
-  const rateKV_Add = inpZus/100; 
+  const rateKV_Add = inpZus.value/100; 
   const rateKV_Total = rateKV_Base + rateKV_Add;
   
   const rateRV = 0.186;
