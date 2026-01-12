@@ -322,7 +322,8 @@ Teilarbeitslosengeld erhalten Personen, die nur einen von mehreren Jobs verliere
 
     <polygon class="interactive" points="-240,-208 240,-208 170,-278 -170,-278" fill="#cfd8dc"
       data-type="text" data-title="Sozialversicherungssystem" data-text="Das System der sozialen Versicherung in Deutschland strebt das Abwenden und Ausgleichen besondere Belastungen des Lebens, das Sichern eines menschenwürdigen Daseins und das Schaffen gleicher Voraussetzungen zur Persönlichkeitsentwicklung an. Weiter zählt zu ihren Zielen Familien und Lebensunterhaltserwerb durch eine frei gewählte Tätigkeit zu fördern. 
-      Hierbei handelt es nach dem Solidaritätsprinzip (Starke tragen Schwache), dem Pflichtversicherungsprinzip (Verpflichtende Versicherung), dem Gleichbehandlungsprinzip (gleiche Leistungen für alle) und dem Umlageverfahren (z.B. Rentenversicherungsbeiträge werden direkt zum Auszahlen von Renten verwendet)."/>
+      
+Hierbei handelt es nach dem Solidaritätsprinzip (Starke tragen Schwache), dem Pflichtversicherungsprinzip (Verpflichtende Versicherung), dem Gleichbehandlungsprinzip (gleiche Leistungen für alle) und dem Umlageverfahren (z.B. Rentenversicherungsbeiträge werden direkt zum Auszahlen von Renten verwendet)."/>
     <text x="0" y="-238" text-anchor="middle" fill="#000" font-weight="bold">Sozialversicherungssystem</text>
   </g>
 
@@ -446,7 +447,7 @@ Der Sinn hinter dem Zwang, sich in die Versicherungen einzubinden, verständlich
         
         <div class="input-group">
           <label>Bruttolohn (Monat)</label>
-          <input type="number" id="inpSalary" value="3500" step="10">
+          <input type="number" min="0" id="inpSalary" value="3500" step="10">
           <div style="font-size:11px; color:#666; margin-top:3px;">
             Löst ggf. die Minijob-Regelung oder Beitragsbemessungsgrenzen aus.
         </div>
@@ -493,7 +494,7 @@ Der Sinn hinter dem Zwang, sich in die Versicherungen einzubinden, verständlich
 
         <div class="input-group">
           <label>Zusatzbeitragssatz in der gesetzlichen Krankenversicherung (in %)</label>
-          <input type="number" id="inpZus" value="2.9" step="0.1">
+          <input type="number" min="0" id="inpZus" value="2.9" step="0.1">
           <div style="font-size:11px; color:#666; margin-top:3px;">
             Dieser ist für jede gesetzliche Krankenkasse induviduell, der bundesweite Durchschnitt liegt bei 2,9%
         </div>
