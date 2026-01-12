@@ -546,7 +546,7 @@ const inpSachsen = document.getElementById("inpSachsen");
 const inpKids = document.getElementById("inpKids");
 const minijobAlert = document.getElementById("minijobAlert");
 
-[inpSalary, inpSachsen, inpKids].forEach(el => el.addEventListener("input", calculateSV));
+[inpSalary, inpSachsen, inpKids, inpZus].forEach(el => el.addEventListener("input", calculateSV));
 
 function calculateSV() {
   let gross = parseFloat(inpSalary.value) || 0;
